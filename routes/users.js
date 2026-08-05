@@ -5,5 +5,6 @@ const wrapAsync = require("../utils/wrapAsync");
 
 router.post("/signup", wrapAsync(userController.Signup));
 router.post("/login", wrapAsync(userController.Login));
+router.post("/logout", wrapAsync(userController.Logout));
 
 module.exports = router;
