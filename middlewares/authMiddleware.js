@@ -17,7 +17,7 @@ module.exports.userVerification = async (req, res, next) => {
       if (err) {
         return res.json({ status: false });
       } else {
-        const user = User.findById(data.id);
+        const user = await User.findById(data.id);
         if (!user) {
           return res.json({ msg: "no user found" });
         }

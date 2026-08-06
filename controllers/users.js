@@ -61,20 +61,47 @@ module.exports.Login = async (req, res) => {
   user.refreshToken = refreshToken;
   await user.save();
 
-  res.json({ msg: "logged in successfully", user });
+  res.json({ msg: "logged in successfully", accessToken, user });
 };
 
 module.exports.Refresh = async (req, res) => {
-  const refreshToken = req.cookie.refreshToken;
-};
+  // const refreshToken = req.cookie.refreshToken;
 
-module.exports.Logout = async (req, res) => {
-  const refreshToken = req.cookie.refreshToken;
+  const refreshHeader = req.headers["authorization"];
+  const refreshToken = refreshHeader.split(" ")[1];
+
   if (!refreshToken) {
     return res.json({ msg: "no refresh token" });
   }
 
-  const user = User.findOne({ refreshToken });
+  jwt.verify(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET,
+    async (err, data) => {
+      if (err) {
+        return res.json({ msg: " incorrect refresh token" });
+      } else {
+        const user = await User.findById(data.id);
+        if (user.refreshToken === refreshToken) {
+          const accessToken = createAccessToken(user._id);
+          res.cookie("accessToken", accessToken, { httpOnly: false });
+          return res.json({ msg: "done" });
+        }
+      }
+    },
+  );
+};
+
+module.exports.Logout = async (req, res) => {
+  // const refreshToken = req.cookie.refreshToken;
+  const header = req.headers["authorization"];
+  const refreshToken = header.split(" ")[1];
+  if (!refreshToken) {
+    return res.json({ msg: "no refresh token" });
+  }
+
+  const user = await User.findOne({ refreshToken });
+  console.log(user);
   if (user) {
     user.refreshToken = "";
     await user.save();
@@ -88,4 +115,9 @@ module.exports.Logout = async (req, res) => {
   });
 
   res.json({ msg: "logged out" });
+};
+
+// protected route demo
+module.exports.profile = async (req, res) => {
+  res.json({ user: req.user.name });
 };
