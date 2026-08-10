@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 PORT = 8080;
 
 const userRouter = require("./routes/users");
+const postRouter = require("./routes/posts");
 
 async function main() {
   await mongoose.connect("mongodb://127.0.0.1:27017/blogapi");
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/", userRouter);
+app.use("/", postRouter);
 
 app.listen(PORT, () => {
   console.log(`server listening on port : ${PORT}`);
