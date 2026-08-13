@@ -67,3 +67,18 @@ module.exports.editPost = async (req, res) => {
 
   res.json({ msg: "edited!", post });
 };
+
+module.exports.destroyPost = async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findById(id);
+  if (!post) {
+    return res.json({ msg: "no post found " });
+  }
+
+  if (!req.user._id.equals(post.author)) {
+    return res.json({ msg: "403, forbidden" });
+  }
+
+  await post.deleteOne();
+  res.json({ msg: "done" });
+};

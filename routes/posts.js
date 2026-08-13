@@ -12,5 +12,10 @@ router.post(
 );
 router.get("/post/:id", userVerification, wrapAsync(postController.showPost));
 router.patch("/post/:id", userVerification, wrapAsync(postController.editPost));
+router.delete(
+  "/post/:id",
+  userVerification,
+  wrapAsync(postController.destroyPost),
+);
 
 module.exports = router;
