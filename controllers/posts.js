@@ -3,7 +3,7 @@ const Post = require("../models/posts");
 const mongoose = require("mongoose");
 
 module.exports.showAllPosts = async (req, res) => {
-  const posts = await Post.find({ author: req.user._id }).populate("author");
+  const posts = await Post.find().populate("author", "name -_id");
 
   // below code is error bcus res.json can send only 1 thing not two objects. If u combine them into one still wont work bcus duplicate keys.
   // res.json(
@@ -48,4 +48,6 @@ module.exports.showPost = async (req, res) => {
   const { id } = req.params;
   const post = await Post.findById(id);
   res.json(post);
+
+  // show author, comment, and comment authors.
 };
