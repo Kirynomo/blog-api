@@ -51,3 +51,19 @@ module.exports.showPost = async (req, res) => {
 
   // show author, comment, and comment authors.
 };
+
+module.exports.editPost = async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findById(id);
+
+  if (!req.user._id.equals(post.author)) {
+    return res.json({ msg: "403, forbidden" });
+  }
+
+  // await post.updateOne(req.body.Post);
+  // or do this to get the updated doc in response tab as well.
+  Object.assign(post, req.body.Post);
+  await post.save();
+
+  res.json({ msg: "edited!", post });
+};
