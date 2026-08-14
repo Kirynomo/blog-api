@@ -1,33 +1,43 @@
 const User = require("../models/users");
 const Post = require("../models/posts");
 const mongoose = require("mongoose");
+const Comment = require("../models/comments");
 
 module.exports.showAllPosts = async (req, res) => {
-  const posts = await Post.find().populate("author", "name -_id");
+  // const posts = await Post.find({}).populate("author", "name -_id");
+  // const comments = await Comment.find({ post: posts._id }).populate("owner");
 
-  // below code is error bcus res.json can send only 1 thing not two objects. If u combine them into one still wont work bcus duplicate keys.
   // res.json(
-  //   {
-  //     title: posts[0].title,
-  //     author: posts[0].author.name,
-  //     content: posts[0].content,
-  //   },
-  //   {
-  //     title: posts[1].title,
-  //     author: posts[1].author.name,
-  //     content: posts[1].content,
-  //   },
+  //   posts.map((post) => ({
+  //     title: post.title,
+  //     author: post.author.name,
+  //     content: post.content,
+  //     comments: comments.content,
+  //   })),
   // );
 
-  res.json(
-    posts.map((post) => ({
-      title: post.title,
-      author: post.author.name,
-      content: post.content,
-    })),
+  const posts = await Post.find({}).populate("author", "name -_id");
+
+  let result = await Promise.all(
+    posts.map(async (post) => {
+      const comments = await Comment.find({ post: post._id }).populate(
+        "owner",
+        "name -_id",
+      );
+
+      return {
+        title: post.title,
+        content: post.content,
+        author: post.author.name,
+        comments: comments.map((comment) => ({
+          comment: comment.content,
+          owner: comment.owner.name,
+        })),
+      };
+    }),
   );
 
-  //show real author name instead of just ID - done !
+  res.json(result);
 };
 
 module.exports.createPost = async (req, res) => {
@@ -68,6 +78,7 @@ module.exports.editPost = async (req, res) => {
   res.json({ msg: "edited!", post });
 };
 
+// IF A POST IS DELETED THEN ALL ITS COMMENTS MUST ALSO BE DELETED SO MAKE THAT USING A MIDDLEWARE
 module.exports.destroyPost = async (req, res) => {
   const { id } = req.params;
   const post = await Post.findById(id);
