@@ -38,6 +38,8 @@ module.exports.showAllPosts = async (req, res) => {
   );
 
   res.json(result);
+
+  // or use virtuals from mongoose.
 };
 
 module.exports.createPost = async (req, res) => {
@@ -92,4 +94,55 @@ module.exports.destroyPost = async (req, res) => {
 
   await post.deleteOne();
   res.json({ msg: "done" });
+};
+
+/*
+// showAllPosts controller but with pagination and no user verification middleware just for testing purpose
+module.exports.getPaginatedPosts = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  const posts = await Post.find({}, { title: 1, content: 1, tags: 1 })
+    .sort({ createdAt: -1 })
+    .skip(offset)
+    .limit(limit);
+  // Since post id, author id from User model was also retrieved field projection is used to hide the sensitive info.
+
+  const total = await Post.countDocuments();
+
+  res.json({
+    data: posts,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasNext: page < Math.ceil(total / limit),
+      hasPrev: page > 1,
+    },
+  });
+};
+*/
+
+// paginate middleware used on below controller
+module.exports.getPaginatedPosts = async (req, res) => {
+  const { page, limit, offset } = req.pagination;
+
+  const posts = await Post.find({}, { content: 1 }).skip(offset).limit(limit);
+
+  const total = await Post.countDocuments();
+
+  res.json({
+    data: posts,
+    pagination: {
+      page,
+      limit,
+      offset,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasNext: page < Math.ceil(total / limit),
+      hasPrev: page > 1,
+    },
+  });
 };
