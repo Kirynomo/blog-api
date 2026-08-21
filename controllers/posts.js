@@ -4,17 +4,23 @@ const mongoose = require("mongoose");
 const Comment = require("../models/comments");
 
 module.exports.showAllPosts = async (req, res) => {
-  // const posts = await Post.find({}).populate("author", "name -_id");
-  // const comments = await Comment.find({ post: posts._id }).populate("owner");
+  // regex search on title and author
+  const { title, author } = req.query;
+  if (title) {
+    const posts = await Post.find({
+      title: { $regex: title, $options: "i" },
+    });
+    res.json({ posts });
+  } else if (author) {
+    const user = await User.find({ name: { $regex: author, $options: "i" } });
+    const userIds = user.map((user) => user._id);
 
-  // res.json(
-  //   posts.map((post) => ({
-  //     title: post.title,
-  //     author: post.author.name,
-  //     content: post.content,
-  //     comments: comments.content,
-  //   })),
-  // );
+    const posts = await Post.find({ author: { $in: userIds } }).populate(
+      "author",
+      "name -_id",
+    );
+    res.json(posts);
+  }
 
   const posts = await Post.find({}).populate("author", "name -_id");
 
