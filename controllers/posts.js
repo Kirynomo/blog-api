@@ -58,10 +58,26 @@ module.exports.createPost = async (req, res) => {
 
 module.exports.showPost = async (req, res) => {
   const { id } = req.params;
-  const post = await Post.findById(id);
-  res.json(post);
+  const post = await Post.findById(id).populate("author", "name -_id");
+  // res.json(post);
 
-  // show author, comment, and comment authors.
+  // post : post._id
+  const comments = await Comment.find({ post: id }).populate(
+    "owner",
+    "name -_id",
+  );
+
+  let result = {
+    content: post.content,
+    title: post.title,
+    author: post.author,
+    comments: comments.map((comment) => ({
+      comment: comment.content,
+      owner: comment.owner.name,
+    })),
+  };
+
+  res.json(result);
 };
 
 module.exports.editPost = async (req, res) => {
