@@ -8,7 +8,11 @@ const postSchema = new Schema({
     ref: "User",
   },
   content: String,
-  tags: String,
+  tags: [
+    {
+      type: String,
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

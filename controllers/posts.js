@@ -5,7 +5,7 @@ const Comment = require("../models/comments");
 
 module.exports.showAllPosts = async (req, res) => {
   // regex search on title and author
-  const { title, author } = req.query;
+  const { title, author, tag } = req.query;
   if (title) {
     const posts = await Post.find({
       title: { $regex: title, $options: "i" },
@@ -56,6 +56,18 @@ module.exports.showAllPosts = async (req, res) => {
     ]);
 
     res.json(posts);
+  } else if (tag) {
+    console.log(tag);
+    const posts = await Post.find({ tags: tag }).populate(
+      "author",
+      "name -_id",
+    );
+    console.log(posts);
+    let result = posts.map((post) => ({
+      title: post.title,
+      author: post.author.name,
+    }));
+    res.json(result);
   } else {
     /*
     const posts = await Post.find({}).populate("author", "name -_id");
@@ -98,10 +110,17 @@ module.exports.createPost = async (req, res) => {
   if (!req.body.Post || req.body.Post === null) {
     return res.json({ msg: "all details required" });
   }
+
+  // issues in storing tags so below code helps in taking the x-www-form-urlencoded data, otherwise use json but it breaks the flow of login -> send other data separately.
+  const tagArray = tags
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+
   const post = await Post.create({
     title,
     content,
-    tags,
+    tags: tagArray,
     author: req.user._id,
   });
   res.json({ msg: "post created !" });
@@ -141,7 +160,17 @@ module.exports.editPost = async (req, res) => {
 
   // await post.updateOne(req.body.Post);
   // or do this to get the updated doc in response tab as well.
-  Object.assign(post, req.body.Post);
+
+  const updates = { ...req.body.Post };
+
+  if (updates.tags) {
+    updates.tags = updates.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+  }
+
+  Object.assign(post, updates);
   await post.save();
 
   res.json({ msg: "edited!", post });
