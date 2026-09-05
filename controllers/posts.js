@@ -188,6 +188,7 @@ module.exports.destroyPost = async (req, res) => {
     return res.json({ msg: "403, forbidden" });
   }
 
+  await Comment.deleteMany({ post: post._id });
   await post.deleteOne();
   res.json({ msg: "done" });
 };
