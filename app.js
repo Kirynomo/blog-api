@@ -2,6 +2,7 @@ const cookieParser = require("cookie-parser");
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const mongoSanitize = require("./middlewares/mongoSanitize");
 PORT = 8080;
 
 const userRouter = require("./routes/users");
@@ -16,6 +17,7 @@ main()
   .then(() => console.log("mongoDB connected"))
   .catch((err) => console.log(err));
 
+app.use(mongoSanitize);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
