@@ -8,7 +8,7 @@ const authLimiter = require("../middlewares/rateLimiter");
 router.post("/signup", authLimiter, wrapAsync(userController.Signup));
 router.post("/login", authLimiter, wrapAsync(userController.Login));
 router.post("/logout", wrapAsync(userController.Logout));
-router.post("/refresh", wrapAsync(userController.Refresh));
+router.post("/refresh", authLimiter, wrapAsync(userController.Refresh));
 router.get("/profile", userVerification, wrapAsync(userController.profile));
 
 module.exports = router;
